@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html>
+<title>Daily Test</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Oswald">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open Sans">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<style>
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        font-family: "Oswald"
+    }
+
+    body {
+        font-family: "Open Sans"
+    }
+
+    .word-btn {
+        background-color: rgb(240, 240, 240);
+        padding: 8px;
+    }
+    
+</style>
+
+<body class="w3-light-grey">
+
+    <!-- w3-content defines a container for fixed size centered content, 
+and is wrapped around the whole page content, except for the footer in this example -->
+    <div class="w3-content" style="max-width:1600px">
+
+        <!-- Header -->
+        <header class="w3-container w3-center w3-white">
+            <h1 class="w3-xxxlarge"><b>Daily Test</b></h1>
+            <h3 id="totScore"></h3>
+            <h5 class="w3-opacity" id="date">JAN 8, 2019</h5>
+        </header>
+
+        <!-- Grid -->
+        <div class="w3-row w3-border">
+
+            <!-- Blog entry -->
+            <div class="w3-container w3-white w3-margin">
+                <div class="w3-center">
+                    <h3>단어<span id="wordScore" style="margin-left: 10px;"></span></h3>
+                </div>
+
+                <div class="w3-justify">
+                    <table id='tbVoca' style="width: 100%; border-spacing: 8px;">
+                    </table>
+                    <div id="divWordsExam" style="text-align: center; margin: 20px;">
+                    </div>
+                </div>
+            </div>
+            <hr>
+
+            <div class="w3-container w3-white w3-margin">
+                <div class="w3-center">
+                    <h3>문장<span id="sentenceScore" style="margin-left: 10px;"></span></h3>
+                </div>
+                <div id="divSentences">
+                </div>
+            </div>
+            <hr>
+            <!-- END BLOG ENTRIES -->
+            <div class="w3-center">
+                <a href="#" class="w3-button w3-red w3-padding-large w3-margin-bottom" onclick="getScore()" id="submit">제출</a>
+            </div>
+        </div>
+        <!-- END GRID -->
+        <!-- END w3-content -->
+
+
+    </div>
+
+
+    <!-- Footer -->
+    <footer class="w3-container w3-dark-grey" style="padding:32px">
+        <a href="#" class="w3-button w3-black w3-padding-large w3-margin-bottom"><i class="fa fa-arrow-up w3-margin-right"></i>To the top</a>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script>
+        let words = new Array();
+        let sentences = new Array();
+        let quizId = "";
+
+        window.onload = function() {
+            
+            let date = new Date();
+            document.querySelector('#date').innerHTML = date.getFullYear()+"."+(date.getMonth()+1)+"."+date.getDate();
+            retrieveWords();
+        }
+        
+        window.addEventListener('scroll', setDivWordsExamLoc);
+        
+        function afterLoad(){
+            words = mixWords(words);
+            sentences = mixSentences(sentences);
+            initVoca(words);
+            initSentence(sentences);
+        }
+        
+        function initVoca(words) {
+            
+            words.forEach(function(item) {
+                let tbVoca = document.querySelector('#tbVoca');
+                let tr = document.createElement('tr');
+                tr.style.height = '40px';
+                tr.innerHTML = '<td style="width: 40%; text-align: right; padding-right: 10px">' + item[0] + '</td>' +
+                    '<td><div style="height: 50%;border-bottom: 1px solid gray"></div></td>' +
+                    '<td style="width: 40%;padding-left: 10px"><span class="words" style="color : rgb(0,0,0)">__________</span></td>';
+                tbVoca.appendChild(tr);
+                addWordsExam(item[1]);
+            });
+
+            setDivWordsExamLoc();
+            
+        }
+
+        function setDivWordsExamLoc(){
+            let scrollLoc = 220 + document.querySelector('#tbVoca').offsetHeight + document.querySelector('#divWordsExam').offsetHeight -window.innerHeight;
+            if(window.scrollY > scrollLoc){
+                let divWordsExam = document.querySelector('#divWordsExam');
+                divWordsExam.style.position = 'static';
+                divWordsExam.style.backgroundColor = '#ffffff';
+                divWordsExam.style.removeProperty('left');
+                divWordsExam.style.removeProperty('bottom');
+                divWordsExam.style.removeProperty('margin');
+                divWordsExam.style.removeProperty('padding');
+            }else{
+                let divWordsExam = document.querySelector('#divWordsExam');
+                divWordsExam.style.position = 'fixed';
+                divWordsExam.style.padding = (divWordsExam.innerHTML.trim()==''?'0px':'16px');
+                divWordsExam.style.bottom = '0px';
+                divWordsExam.style.left = '0px';
+                divWordsExam.style.backgroundColor = '#ffffff';
+            }
+        }
+        
+        function initSentence(sentences){
+            let divSentences = document.querySelector('#divSentences');
+            sentences.forEach(function(item){
+                let phs = item.split(' ');
+                let divBlankSt = document.createElement('div');
+                let divBtnPhs = document.createElement('div');
+                divBlankSt.classList.add('w3-justify');
+                divBlankSt.classList.add('w3-center');
+                divBlankSt.style.marginTop = '40px';
+                phs.forEach(function(item){
+                    let span = document.createElement('span');
+                    span.innerHTML = getBlank(item);
+                    divBlankSt.appendChild(span);
+                    divBlankSt.innerHTML = divBlankSt.innerHTML+'&nbsp;&nbsp;';
+                });
+                divSentences.appendChild(divBlankSt);
+                divBtnPhs.classList.add('eval-valid');
+                divBtnPhs.style.textAlign = 'center';
+                divBtnPhs.style.margin = '20px';
+                phs.forEach(function(item){
+                    addSentenceExam(item,divBtnPhs);
+                });
+                divSentences.appendChild(divBtnPhs);
+                divSentences.appendChild(document.createElement('hr'));
+            });
+        }
+        
+        function getBlank(item){
+            let result = '';
+            for(let i = 0; i<item.length; i++){
+                result += '__';
+            }
+            return result;
+        }
+
+        function addWordsExam(text) {
+            var obj = document.createElement('span');
+            obj.classList.add('w3-button');
+            obj.classList.add('word-btn');
+            obj.style.margin = '5px';
+            obj.addEventListener('click', onClickWord);
+            obj.innerHTML = text;
+            var divWordsExam = document.querySelector('#divWordsExam');
+            divWordsExam.classList.add('eval-valid');
+            let ran = Math.floor(Math.random()*100);
+            let ranIdx = ran%divWordsExam.children.length;
+            divWordsExam.insertBefore(obj,divWordsExam.children[ranIdx]);
+        }
+        
+        function addSentenceExam(text,parent){
+            let span = document.createElement('span');
+            span.classList.add('w3-button');
+            span.classList.add('word-btn');
+            span.style.margin = '5px';
+            span.innerHTML = text;
+            span.addEventListener('click', onClickSentence);
+            
+            let ran = Math.floor(Math.random()*100);
+            let ranIdx = ran%parent.children.length;
+            parent.insertBefore(span,parent.children[ranIdx]);
+        }
+
+        function onClickWord() {
+            var blank = document.getElementsByClassName('words');
+            for (let item of blank) {
+                if (item.innerHTML === '__________') {
+                    item.innerHTML = this.innerHTML;
+                    item.classList.add('w3-button');
+                    item.classList.add('word-btn');
+                    item.style.color = this.style.color;
+                    item.addEventListener('click', onClickWordCancel);
+                    this.parentElement.removeChild(this);
+                    break;
+                }
+
+            }
+        }
+
+        function onClickWordCancel() {
+            let text = this.innerHTML;
+            this.innerHTML = '__________';
+            this.classList.remove('w3-button');
+            this.classList.remove('word-btn');
+            this.removeEventListener('click',onClickWordCancel);
+            addWordsExam(text);
+
+        }
+        
+        function onClickSentence(){
+            const pattern = /^_+$/;
+            let divBlankSentence = this.parentElement.previousSibling;
+            let spans = divBlankSentence.querySelectorAll('span');
+            
+            for(let span of spans){
+                if( pattern.test(span.innerHTML) ){
+                    span.setAttribute('oritext',span.innerHTML);
+                    span.innerHTML = this.innerHTML;
+                    span.classList.add('w3-button');
+                    span.classList.add('word-btn');
+                    span.style.margin = '5px';
+                    span.addEventListener('click',onClickSentenceCancel);
+                    this.parentElement.removeChild(this);
+                    break;
+                }
+            }
+        }
+        
+        function onClickSentenceCancel(){
+            let oriText = this.getAttribute('oritext');
+            let text = this.innerHTML;
+            this.innerHTML = oriText;
+            this.classList.remove('w3-button');
+            this.classList.remove('word-btn');
+            this.removeEventListener('click',onClickSentenceCancel);
+            addSentenceExam(text,this.parentElement.nextElementSibling);
+        }
+        
+        function mixWords(words){
+            let result = new Array();
+            let i = 0;
+            while(words.length > 0){
+                let ran = Math.floor(Math.random()*100);
+                let ranIdx = ran%words.length;
+                result[i++] = words[ranIdx];
+                words.splice(ranIdx,1);
+            }
+            return result;
+        }
+        
+        function mixSentences(sentences){
+            let result = new Array();
+            let i = 0;
+            while(sentences.length > 0){
+                let ran = Math.floor(Math.random()*100);
+                let ranIdx = ran%sentences.length;
+                result[i++] = sentences[ranIdx];
+                sentences.splice(ranIdx,1);
+            }
+            return result;
+        }
+        
+        function getScore(){
+            var evalValids = document.querySelectorAll('.eval-valid');
+            for(let i = 0; i<evalValids.length; i++){
+                if(evalValids[i].innerHTML.trim() !== ''){
+                  alert('모든 문제를 다 풀어 주세요.');
+                return;  
+                }
+            }
+            
+            let wordScore = wordsEvaluate();
+            let sentenceScore = sentencesEvaluate();
+            let totScore = document.querySelector('#totScore');
+            let totCnt = wordScore[0] + sentenceScore[0];
+            let rightCnt = wordScore[1] + sentenceScore[1];
+            let score = Math.floor( (rightCnt/totCnt)*100 );
+            totScore.innerHTML = "결과 : "+score+"점";
+            document.querySelector('#submit').style.display = 'none';
+            let evalResult = "t:"+score+","+Math.floor( (wordScore[1]/wordScore[0])*100 )+","+Math.floor( (sentenceScore[1]/sentenceScore[0])*100 )
+                            +"\nw:"+wordScore[2]+"\ns:"+sentenceScore[2];
+            sendResult(evalResult);
+        }
+        
+        function wordsEvaluate(){
+            let wrongAnswer = "";
+            let tbVoca = document.querySelector('#tbVoca');
+            let trs = tbVoca.querySelectorAll('tr');
+            let totCnt = trs.length;
+            let rightCnt = 0;
+            trs.forEach(function(item,index){
+                let tds = item.querySelectorAll('td');
+                let isCorrect = false;
+                item.style.outline = '2px solid #ff9f9f';
+                for(let i = 0; i<words.length; i++){
+                    if(words[i][0] === tds[0].innerHTML
+                      && words[i][1] === tds[2].querySelector('span').innerHTML ){
+                        item.style.outline = '2px solid #3ca73c';
+                        isCorrect = true;
+                        rightCnt++;
+                        break;
+                    }
+                }
+                if(!isCorrect){
+                    let rightAns = document.createElement('span');
+                    rightAns.style.color = 'green';
+                    rightAns.style.fontWeight = 'bold';
+                    rightAns.style.marginLeft = '10px';
+                    rightAns.innerHTML = words[index][1];
+                    tds[2].appendChild(rightAns);
+                    wrongAnswer  = wrongAnswer + "@next@"+words[index][0]+","+words[index][1];
+                }
+                tds[2].querySelector('span').classList.remove('w3-button');
+                tds[2].querySelector('span').classList.remove('word-btn');
+                tds[2].querySelector('span').removeEventListener('click',onClickWordCancel);
+                let wordScore = document.querySelector('#wordScore');
+                let score = Math.floor( (rightCnt/totCnt)*100 );
+                wordScore.style.color = (score>80?'green':'red');
+                wordScore.innerHTML = getEvalMsg(score);
+            });
+            return [totCnt,rightCnt,wrongAnswer.substring(6)];
+        }
+        
+        function sentencesEvaluate(){
+            let wrongAnswer = "";
+            let divSentences = document.querySelector('#divSentences');
+            let divs = divSentences.querySelectorAll('div');
+            let totCnt = divs.length/2;
+            let rightCnt = 0;
+            for(let idxDiv = 0; idxDiv < divs.length; idxDiv+=2){
+                let item = divs[idxDiv];
+                let isCorrect = false;
+                let spans = item.querySelectorAll('span');
+                let spanText = "";
+                item.style.border = '2px solid #ff9f9f';
+                item.style.padding = '8px';
+                for(let i = 0; i<spans.length; i++){
+                    spanText = spanText + " " + spans[i].innerHTML;
+                    spans[i].classList.remove('w3-button');
+                    spans[i].classList.remove('word-btn');
+                    spans[i].style.margin = '0px';
+                    spans[i].removeEventListener('click',onClickSentenceCancel);
+                }
+                for(let i = 0; i<sentences.length; i++){
+                    if(spanText.substring(1) == sentences[i]){
+                        item.style.border = '2px solid #3ca73c';
+                        isCorrect = true;
+                        rightCnt++;
+                        break;
+                    }
+                }
+                if(!isCorrect){
+                    let rightAns = document.createElement('div');
+                    rightAns.style.color = 'green';
+                    rightAns.style.fontWeight = 'bold';
+                    rightAns.style.marginLeft = '10px';
+                    rightAns.innerHTML = sentences[idxDiv/2];
+                    item.appendChild(rightAns);
+                    wrongAnswer  = wrongAnswer + "@next@"+sentences[idxDiv/2];
+                }
+                let sentenceScore = document.querySelector('#sentenceScore');
+                let score = Math.floor( (rightCnt/totCnt)*100 );
+                sentenceScore.style.color = (score>80?'green':'red');
+                sentenceScore.innerHTML = getEvalMsg(score);
+            }
+            return [totCnt,rightCnt,wrongAnswer.substring(6)];
+        }
+        
+        function getEvalMsg(score){
+            if(score == 100) return 'Perfect!';
+            else if(score >90) return 'Excellent!';
+            else if(score >80) return 'Great!';
+            else if(score >60) return 'So so';
+            else if(score >50) return 'Not bad';
+            else return 'Try harder';
+        }
+        
+        function retrieveWords() {
+            jQuery.ajax({
+                    method: "GET",
+                    url: "https://www.tistory.com/apis/comment/list",
+                    data: {
+                        access_token: "c80122b26dd7c701a5e4795e8d7ce444_02e5990259cbd49a6a406602a4903714",
+                        blogName: "5789",
+                        postId: "18",
+                        output: 'json'
+                    }
+                })
+                .done(function(msg) {
+                    let comments = msg.tistory.item.comments;
+                    let lines;
+                    for(let i = comments.length-1; i>=0; i--){
+                        if(comments[i].parentId===''){
+                            lines = comments[i].comment.split('\n');
+                            quizId = comments[i].id;
+                            break;
+                        }
+                    }
+                    for(let i = 0; i<lines.length; i++){
+                        if(lines[i].startsWith('w:')){
+                            let line = lines[i].substr(2);
+                            if(""===line.trim()) continue;
+                            let wordvals = line.split('@next@');
+                            for(let j = 0; j<wordvals.length; j++){
+                                let spWordvals = wordvals[j].split(',');
+                                spWordvals[0] = spWordvals[0].trim();
+                                spWordvals[1] = spWordvals[1].trim();
+                                words[j] = spWordvals;
+                            }
+                        }else if(lines[i].startsWith('s:')){
+                            let line = lines[i].substr(2);
+                            if(""===line.trim()) continue;
+                            sentences = line.split('@next@');
+                        }
+                    }
+                    afterLoad();
+                });
+        }
+
+        function sendResult(evalResult) {
+            jQuery.ajax({
+                    method: "POST",
+                    url: "https://www.tistory.com/apis/comment/write",
+                    data: {
+                        access_token: "c80122b26dd7c701a5e4795e8d7ce444_02e5990259cbd49a6a406602a4903714",
+                        blogName: "5789",
+                        postId: "18",
+                        parentId: quizId,
+                        content: evalResult,
+                        output: 'json'
+                    }
+                })
+                .done(function(msg) {
+                    console.log(msg);
+                });
+        }
+    </script>
+
+</body>
+</html>
