@@ -44,13 +44,11 @@
 
 <body class="w3-light-grey">
 
-    <!-- w3-content defines a container for fixed size centered content, 
-and is wrapped around the whole page content, except for the footer in this example -->
     <div class="w3-content" style="max-width:1600px">
 
         <!-- Header -->
         <header class="w3-container w3-center w3-white">
-            <h1 class="w3-xxxlarge"><b>Daily Test</b></h1>
+            <h1 class="w3-xxxlarge"><b><span name="lbDailyTest">Daily Test</span></b></h1>
             <h3 id="totScore"></h3>
             <h5 class="w3-opacity" id="date">JAN 8, 2019</h5>
         </header>
@@ -61,7 +59,7 @@ and is wrapped around the whole page content, except for the footer in this exam
             <!-- Blog entry -->
             <div class="w3-container w3-white w3-margin">
                 <div class="w3-center">
-                    <h3>단어<span id="wordScore" style="margin-left: 10px;"></span></h3>
+                    <h3><span name="lbWord">Word</span><span id="wordScore" style="margin-left: 10px;"></span></h3>
                 </div>
 
                 <div class="w3-justify">
@@ -75,7 +73,7 @@ and is wrapped around the whole page content, except for the footer in this exam
 
             <div class="w3-container w3-white w3-margin">
                 <div class="w3-center">
-                    <h3>문장<span id="sentenceScore" style="margin-left: 10px;"></span></h3>
+                    <h3><span name="lbSentence">Sentence</span><span id="sentenceScore" style="margin-left: 10px;"></span></h3>
                 </div>
                 <div id="divSentences">
                 </div>
@@ -83,7 +81,7 @@ and is wrapped around the whole page content, except for the footer in this exam
             <hr>
             <!-- END BLOG ENTRIES -->
             <div class="w3-center">
-                <a href="#" class="w3-button w3-red w3-padding-large w3-margin-bottom" onclick="getScore()" id="submit">제출</a>
+                <a href="#" class="w3-button w3-red w3-padding-large w3-margin-bottom" onclick="getScore()" id="submit"><span name="lbSubmit">Submit</span></a>
             </div>
         </div>
         <!-- END GRID -->
@@ -95,28 +93,56 @@ and is wrapped around the whole page content, except for the footer in this exam
 
     <!-- Footer -->
     <footer class="w3-container w3-dark-grey w3-center" style="padding:32px">
-        <a href="#" onclick="document.getElementById('registerQuizForm').style.display='block'" class="w3-button w3-black w3-padding-large w3-margin-bottom">문제 등록</a>
-        <a href="#" onclick="" class="w3-button w3-black w3-padding-large w3-margin-bottom">내역보기</a>
+        <a href="#" onclick="document.getElementById('registerQuizForm').style.display='block'" class="w3-button w3-black w3-padding-large w3-margin-bottom"><span name="lbRegQuiz">New Quiz</span></a>
+        <a href="#" onclick="" class="w3-button w3-black w3-padding-large w3-margin-bottom"><span name="lbHistory">History</span></a>
     </footer>
     <div id="registerQuizForm" class="w3-modal">
         <div class="w3-modal-content w3-animate-zoom">
             <div class="w3-container w3-black">
                 <span onclick="document.getElementById('registerQuizForm').style.display='none'" class="w3-button w3-display-topright w3-large">x</span>
-                <h3>문제 등록</h3>
+                <h3><span name="lbRegQuiz">New Quiz</span></h3>
             </div>
             <div class="w3-container">
-                <p>단어</p>
-                <p class="qf-word"><input class="w3-input w3-padding-16 w3-border" type="text" style="width: 45%; display: inline"  placeholder="영어" onkeypress="newQuiz.onKeyPressFirst()">
-                <input class="w3-input w3-padding-16 w3-border" type="text" style="width: 45%; display: inline" placeholder="한국어" onkeypress="newQuiz.onKeyPressSecond()"></p>
-                <p>문장</p>
-                <p class="qf-sentence"><input class="w3-input w3-padding-16 w3-border" type="text" placeholder="한국어 문장" onkeypress="newQuiz.onKeyPressSentence()">
+                <p><span name="lbWord">Word</span></p>
+                <p class="qf-word"><input class="w3-input w3-padding-16 w3-border" type="text" style="width: 45%; display: inline"  placeholder="lbSourceLang" onkeypress="newQuiz.onKeyPressFirst()">
+                <input class="w3-input w3-padding-16 w3-border" type="text" style="width: 45%; display: inline" placeholder="lbTargetLang" onkeypress="newQuiz.onKeyPressSecond()"></p>
+                <p><span name="lbSentence">Sentence</span></p>
+                <p class="qf-sentence"><input class="w3-input w3-padding-16 w3-border" type="text" placeholder="lbTargetLang" onkeypress="newQuiz.onKeyPressSentence()">
                 </p>
-                <p class="w3-center"><button class="w3-button w3-dark-grey" onclick="newQuiz.register();">완료</button></p>
+                <p class="w3-center"><button class="w3-button w3-dark-grey" onclick="newQuiz.register();"><span name="lbComplete">Complete</span></button></p>
             </div>
         </div>
     </div>
     <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
     <script>
+        /*let lang = {
+            lbDailyTest : "Daily Test"
+            ,lbWord : "Word"
+            ,lbSourceLang : "English"
+            ,lbTargetLang : "Korean"
+            ,lbSentence : "Sentence"
+            ,lbSubmit : "Submit"
+            ,lbRegQuiz : "New Quiz"
+            ,lbHistory : "History"
+            ,lbComplete : "Complete"
+            ,lbResult : "Result"
+            ,lbScore : "Score"
+            ,msgSolveAll : "Please Solve all quizz."
+        }*/
+        let lang = {
+            lbDailyTest : "매일 쪽지시험"
+            ,lbWord : "단어"
+            ,lbSourceLang : "영어"
+            ,lbTargetLang : "한국어"
+            ,lbSentence : "문장"
+            ,lbSubmit : "제출"
+            ,lbRegQuiz : "새 문제"
+            ,lbHistory : "내역 보기"
+            ,lbComplete : "완료"
+            ,lbResult : "결과"
+            ,lbScore : "점"
+            ,msgSolveAll : "모든 문제를 다 풀어주세요."
+        }
         let words = new Array();
         let sentences = new Array();
         let quizId = "";
@@ -125,11 +151,22 @@ and is wrapped around the whole page content, except for the footer in this exam
             
             let date = new Date();
             document.querySelector('#date').innerHTML = date.getFullYear()+"."+(date.getMonth()+1)+"."+date.getDate();
+            multiLang();
             retrieveWords();
         }
         
         window.addEventListener('scroll', setDivWordsExamLoc);
         
+        function multiLang(){
+            for(let key in lang){
+                document.getElementsByName(key).forEach(function(obj){
+                    obj.innerHTML = lang[key];
+                });
+                document.querySelectorAll("input[placeholder="+key+"]").forEach(function(obj){
+                    obj.setAttribute("placeholder",lang[key]);
+                });
+            }
+        }
         function afterLoad(){
             words = mixWords(words);
             sentences = mixSentences(sentences);
@@ -355,7 +392,7 @@ and is wrapped around the whole page content, except for the footer in this exam
             var evalValids = document.querySelectorAll('.eval-valid');
             for(let i = 0; i<evalValids.length; i++){
                 if(evalValids[i].innerHTML.trim() !== ''){
-                  alert('모든 문제를 다 풀어 주세요.');
+                  alert(lang.msgSolveAll);
                 return;  
                 }
             }
@@ -366,7 +403,7 @@ and is wrapped around the whole page content, except for the footer in this exam
             let totCnt = wordScore[0] + sentenceScore[0];
             let rightCnt = wordScore[1] + sentenceScore[1];
             let score = Math.floor( (rightCnt/totCnt)*100 );
-            totScore.innerHTML = "결과 : "+score+"점";
+            totScore.innerHTML = lang.lbResult+" : "+score+lang.lbScore;
             document.querySelector('#submit').style.display = 'none';
             let evalResult = "t:"+score+","+Math.floor( (wordScore[1]/wordScore[0])*100 )+","+Math.floor( (sentenceScore[1]/sentenceScore[0])*100 )
                             +"\nw:"+wordScore[2]+"\ns:"+sentenceScore[2];
@@ -535,13 +572,17 @@ and is wrapped around the whole page content, except for the footer in this exam
                 let sResult = "";
                 for(let i = 0; i<qfWords.length; i++){
                     let inputs = qfWords[i].querySelectorAll('input');
-                    wResult = wResult + "@next@"+inputs[0].value + "," + inputs[1].value;
+                    let source = inputs[0].value;
+                    let target = inputs[1].value;
+                    if(source!==""&&target!=="")
+                        wResult = wResult + "@next@"+source + "," + target;
                 }
                 wResult = "w:"+wResult.substring(6);
                 
                 for(let i = 0; i<qfSentences.length; i++){
                     let input = qfSentences[i].querySelector('input');
-                    sResult = sResult + "@next@"+input.value;
+                    if(input.value!=="")
+                        sResult = sResult + "@next@"+input.value;
                 }
                 sResult = "s:"+sResult.substring(6);
 
