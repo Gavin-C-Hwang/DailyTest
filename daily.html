@@ -25,6 +25,20 @@
         background-color: rgb(240, 240, 240);
         padding: 8px;
     }
+
+    .w3-animate-zoomout {
+    animation: animatezoomout 0.6s
+}
+
+@keyframes animatezoomout {
+    from {
+        transform: scale(1)
+    }
+
+    to {
+        transform: scale(0)
+    }
+}
     
 </style>
 
@@ -82,7 +96,7 @@ and is wrapped around the whole page content, except for the footer in this exam
     <!-- Footer -->
     <footer class="w3-container w3-dark-grey w3-center" style="padding:32px">
         <a href="#" onclick="document.getElementById('registerQuizForm').style.display='block'" class="w3-button w3-black w3-padding-large w3-margin-bottom">문제 등록</a>
-        <a href="#" onclick="retrieveHistory()" class="w3-button w3-black w3-padding-large w3-margin-bottom">내역보기</a>
+        <a href="#" onclick="" class="w3-button w3-black w3-padding-large w3-margin-bottom">내역보기</a>
     </footer>
     <div id="registerQuizForm" class="w3-modal">
         <div class="w3-modal-content w3-animate-zoom">
@@ -92,12 +106,12 @@ and is wrapped around the whole page content, except for the footer in this exam
             </div>
             <div class="w3-container">
                 <p>단어</p>
-                <p><input class="w3-input w3-padding-16 w3-border" type="text" style="width: 45%; display: inline"  placeholder="영어" onkeypress="newQuiz.onKeyPressFirst()">
+                <p class="qf-word"><input class="w3-input w3-padding-16 w3-border" type="text" style="width: 45%; display: inline"  placeholder="영어" onkeypress="newQuiz.onKeyPressFirst()">
                 <input class="w3-input w3-padding-16 w3-border" type="text" style="width: 45%; display: inline" placeholder="한국어" onkeypress="newQuiz.onKeyPressSecond()"></p>
                 <p>문장</p>
-                <p><input class="w3-input w3-padding-16 w3-border" type="text" placeholder="한국어 문장">
+                <p class="qf-sentence"><input class="w3-input w3-padding-16 w3-border" type="text" placeholder="한국어 문장" onkeypress="newQuiz.onKeyPressSentence()">
                 </p>
-                <p><button class="w3-button" onclick="newQuiz.register();">완료</button></p>
+                <p class="w3-center"><button class="w3-button w3-dark-grey" onclick="newQuiz.register();">완료</button></p>
             </div>
         </div>
     </div>
@@ -129,11 +143,15 @@ and is wrapped around the whole page content, except for the footer in this exam
                 let tbVoca = document.querySelector('#tbVoca');
                 let tr = document.createElement('tr');
                 tr.style.height = '40px';
+                tr.classList.add('w3-animate-zoom');
                 tr.innerHTML = '<td style="width: 40%; text-align: right; padding-right: 10px">' + item[0] + '</td>' +
                     '<td><div style="height: 50%;border-bottom: 1px solid gray"></div></td>' +
                     '<td style="width: 40%;padding-left: 10px"><span class="words" style="color : rgb(0,0,0)">__________</span></td>';
                 tbVoca.appendChild(tr);
-                addWordsExam(item[1]);
+                setTimeout(function(){
+                    addWordsExam(item[1]);
+                    tr.classList.remove('w3-animate-zoom');
+                },1000);
             });
 
             setDivWordsExamLoc();
@@ -199,6 +217,7 @@ and is wrapped around the whole page content, except for the footer in this exam
             var obj = document.createElement('span');
             obj.classList.add('w3-button');
             obj.classList.add('word-btn');
+            obj.classList.add('w3-animate-zoom');
             obj.style.margin = '5px';
             obj.addEventListener('click', onClickWord);
             obj.innerHTML = text;
@@ -207,12 +226,14 @@ and is wrapped around the whole page content, except for the footer in this exam
             let ran = Math.floor(Math.random()*100);
             let ranIdx = ran%divWordsExam.children.length;
             divWordsExam.insertBefore(obj,divWordsExam.children[ranIdx]);
+            setTimeout(function(){obj.classList.remove('w3-animate-zoom')},150);
         }
         
         function addSentenceExam(text,parent){
             let span = document.createElement('span');
             span.classList.add('w3-button');
             span.classList.add('word-btn');
+            span.classList.add('w3-animate-zoom');
             span.style.margin = '5px';
             span.innerHTML = text;
             span.addEventListener('click', onClickSentence);
@@ -220,18 +241,28 @@ and is wrapped around the whole page content, except for the footer in this exam
             let ran = Math.floor(Math.random()*100);
             let ranIdx = ran%parent.children.length;
             parent.insertBefore(span,parent.children[ranIdx]);
+            setTimeout(function(){span.classList.remove('w3-animate-zoom')},150);
         }
 
         function onClickWord() {
             var blank = document.getElementsByClassName('words');
             for (let item of blank) {
                 if (item.innerHTML === '__________') {
-                    item.innerHTML = this.innerHTML;
+                    let oldItem = this;
+                    item.innerHTML = oldItem.innerHTML;
                     item.classList.add('w3-button');
                     item.classList.add('word-btn');
-                    item.style.color = this.style.color;
+                    item.classList.add('w3-animate-zoom');
+                    item.style.color = oldItem.style.color;
                     item.addEventListener('click', onClickWordCancel);
-                    this.parentElement.removeChild(this);
+                   
+                    oldItem.classList.add('w3-animate-zoomout');
+                    setTimeout(function(){
+                        oldItem.classList.remove('w3-animate-zoomout');
+                        oldItem.parentElement.removeChild(oldItem);
+                    },150);
+                    
+                    setTimeout(function(){item.classList.remove('w3-animate-zoom')},150);
                     break;
                 }
 
@@ -239,11 +270,16 @@ and is wrapped around the whole page content, except for the footer in this exam
         }
 
         function onClickWordCancel() {
-            let text = this.innerHTML;
-            this.innerHTML = '__________';
-            this.classList.remove('w3-button');
-            this.classList.remove('word-btn');
-            this.removeEventListener('click',onClickWordCancel);
+            let oldItem = this;
+            let text = oldItem.innerHTML;
+            oldItem.classList.add('w3-animate-zoomout');
+            setTimeout(function(){
+                oldItem.innerHTML = '__________';
+                oldItem.classList.remove('w3-button');
+                oldItem.classList.remove('word-btn');
+                oldItem.removeEventListener('click',onClickWordCancel);
+                oldItem.classList.remove('w3-animate-zoomout');
+            },150);
             addWordsExam(text);
 
         }
@@ -255,26 +291,40 @@ and is wrapped around the whole page content, except for the footer in this exam
             
             for(let span of spans){
                 if( pattern.test(span.innerHTML) ){
+                    let oldItem = this;
                     span.setAttribute('oritext',span.innerHTML);
-                    span.innerHTML = this.innerHTML;
+                    span.innerHTML = oldItem.innerHTML;
                     span.classList.add('w3-button');
                     span.classList.add('word-btn');
+                    span.classList.add('w3-animate-zoom');
                     span.style.margin = '5px';
                     span.addEventListener('click',onClickSentenceCancel);
-                    this.parentElement.removeChild(this);
+                    
+                    oldItem.classList.add('w3-animate-zoomout');
+                    setTimeout(function(){
+                        oldItem.classList.remove('w3-animate-zoomout');
+                        oldItem.parentElement.removeChild(oldItem);
+                    },150);
+                    
+                    setTimeout(function(){span.classList.remove('w3-animate-zoom')},150);
                     break;
                 }
             }
         }
         
         function onClickSentenceCancel(){
-            let oriText = this.getAttribute('oritext');
-            let text = this.innerHTML;
-            this.innerHTML = oriText;
-            this.classList.remove('w3-button');
-            this.classList.remove('word-btn');
-            this.removeEventListener('click',onClickSentenceCancel);
-            addSentenceExam(text,this.parentElement.nextElementSibling);
+            let oldItem = this;
+            let oriText = oldItem.getAttribute('oritext');
+            let text = oldItem.innerHTML;
+            oldItem.classList.add('w3-animate-zoomout');
+            setTimeout(function(){
+                oldItem.innerHTML = oriText;
+                oldItem.classList.remove('w3-button');
+                oldItem.classList.remove('word-btn');
+                oldItem.removeEventListener('click',onClickSentenceCancel);
+                oldItem.classList.remove('w3-animate-zoomout');
+            },150);
+            addSentenceExam(text,oldItem.parentElement.nextElementSibling);
         }
         
         function mixWords(words){
@@ -478,33 +528,82 @@ and is wrapped around the whole page content, except for the footer in this exam
         
         let newQuiz = {
             'register' : function (){
-                document.getElementById('registerQuizForm').style.display='block'    
+                let popupForm = document.querySelector('#registerQuizForm');
+                let qfWords = popupForm.querySelectorAll('.qf-word');
+                let qfSentences = popupForm.querySelectorAll('.qf-sentence');
+                let wResult = "";
+                let sResult = "";
+                for(let i = 0; i<qfWords.length; i++){
+                    let inputs = qfWords[i].querySelectorAll('input');
+                    wResult = wResult + "@next@"+inputs[0].value + "," + inputs[1].value;
+                }
+                wResult = "w:"+wResult.substring(6);
+                
+                for(let i = 0; i<qfSentences.length; i++){
+                    let input = qfSentences[i].querySelector('input');
+                    sResult = sResult + "@next@"+input.value;
+                }
+                sResult = "s:"+sResult.substring(6);
+
+                jQuery.ajax({
+                    method: "POST",
+                    url: "https://www.tistory.com/apis/comment/write",
+                    data: {
+                        access_token: "c80122b26dd7c701a5e4795e8d7ce444_02e5990259cbd49a6a406602a4903714",
+                        blogName: "5789",
+                        postId: "18",
+                        content: wResult+"\n"+sResult,
+                        output: 'json'
+                    }
+                })
+                .done(function(msg) {
+                    console.log(msg);
+                    window.location.reload();
+                });
+
             },
             'onKeyPressFirst' : function(){
-               if(event.keyCode === 'Enter'){
+               if(event.keyCode === 13){
                    let target = event.currentTarget; 
+                   target.nextElementSibling.focus();
                }
             },
             'onKeyPressSecond' : function(){
                 if(event.keyCode === 13){
                    let target = event.currentTarget; 
                    let p = document.createElement('p');
-                    p.innerHTML = '<input class="w3-input w3-padding-16 w3-border" type="text" style="width: 45%; display: inline"  placeholder="영어"><input class="w3-input w3-padding-16 w3-border" type="text" style="width: 45%; display: inline" placeholder="한국어">';
+                   p.classList.add('qf-word');
+                   p.innerHTML = '<input class="w3-input w3-padding-16 w3-border" type="text" style="width: 45%; display: inline"  placeholder="영어">\n<input class="w3-input w3-padding-16 w3-border" type="text" style="width: 45%; display: inline" placeholder="한국어">';
                    target.parentElement.parentElement.insertBefore(p,target.parentElement);
-                    
-                    
-                    
-                    /*<p><input class="w3-input w3-padding-16 w3-border" type="text" style="width: 45%; display: inline"  placeholder="영어" onkeypress="newQuiz.onKeyPressFirst()">
-                <input class="w3-input w3-padding-16 w3-border" type="text" style="width: 45%; display: inline" placeholder="한국어" onkeypress="newQuiz.onKeyPressSecond()"></p>*/
+                   let oldInputs = target.parentElement.querySelectorAll('input');
+                   let newInputs = p.querySelectorAll('input');
+                   newInputs[0].value = oldInputs[0].value; 
+                   newInputs[1].value = oldInputs[1].value;
+                   oldInputs[0].value = "";
+                   oldInputs[1].value = "";
+                   oldInputs[0].focus();
+                   let popupForm = document.querySelector('#registerQuizForm');
+                   popupForm.scrollTop = popupForm.scrollHeight;
+               }
+            },
+            'onKeyPressSentence' : function(){
+                if(event.keyCode === 13){
+                   let target = event.currentTarget; 
+                   let p = document.createElement('p');
+                   p.classList.add('qf-sentence');
+                   p.innerHTML = '<input class="w3-input w3-padding-16 w3-border" type="text" placeholder="한국어 문장" onkeypress="newQuiz.onKeyPressSentence()">';
+                   target.parentElement.parentElement.insertBefore(p,target.parentElement);
+                   let oldInput = target.parentElement.querySelector('input');
+                   let newInput = p.querySelector('input');
+                   newInput.value = oldInput.value; 
+                   oldInput.value = "";
+                   oldInput.focus();
+                   let popupForm = document.querySelector('#registerQuizForm');
+                   popupForm.scrollTop = popupForm.scrollHeight;
                }
             }
         }
         
-        
-        
-        function retrieveHistory(){
-            
-        }
     </script>
 
 </body>
