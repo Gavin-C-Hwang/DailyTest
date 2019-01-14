@@ -75,7 +75,7 @@
                 <div class="w3-center">
                     <h3><span name="lbSentence">Sentence</span><span id="sentenceScore" style="margin-left: 10px;"></span></h3>
                 </div>
-                <div id="divSentences">
+                <div id="divSentences" style="word-break: break-word">
                 </div>
             </div>
             <hr>
@@ -94,7 +94,7 @@
     <!-- Footer -->
     <footer class="w3-container w3-dark-grey w3-center" style="padding:32px">
         <a href="#" onclick="document.getElementById('registerQuizForm').style.display='block'" class="w3-button w3-black w3-padding-large w3-margin-bottom"><span name="lbRegQuiz">New Quiz</span></a>
-        <a href="#" onclick="" class="w3-button w3-black w3-padding-large w3-margin-bottom"><span name="lbHistory">History</span></a>
+        <a href="#" onclick="history.init()" class="w3-button w3-black w3-padding-large w3-margin-bottom"><span name="lbHistory">History</span></a>
     </footer>
     <div id="registerQuizForm" class="w3-modal">
         <div class="w3-modal-content w3-animate-zoom">
@@ -113,7 +113,25 @@
             </div>
         </div>
     </div>
+    <div id="retrieveHistoryForm" class="w3-modal">
+        <div class="w3-modal-content w3-animate-zoom w3-light-grey">
+            <div class="w3-container w3-black">
+                <span onclick="document.getElementById('retrieveHistoryForm').style.display='none'" class="w3-button w3-display-topright w3-large">x</span>
+                <h3><span name="lbHistory">History</span></h3>
+            </div>
+            <div class="w3-center">
+                <h6 id="lbHistoryTitle"></h6>
+            </div>
+            <div>
+                <canvas id="myChart" width="400" height="200"></canvas>     
+            </div>
+            <div class="w3-container w3-white w3-margin w3-padding-16" id="wrongAnswer">
+                <h6 class="w3-center" name = "lbWrongTitle">Wrong Answer List</h6> 
+            </div>
+        </div>
+    </div>
     <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.min.js"></script>
     <script>
         /*let lang = {
             lbDailyTest : "Daily Test"
@@ -126,7 +144,12 @@
             ,lbHistory : "History"
             ,lbComplete : "Complete"
             ,lbResult : "Result"
-            ,lbScore : "Score"
+            ,lbScore : " score"
+            ,lbHistory : "History"
+            ,lbHistoryTitle : "You've studied {0} words and {1} sentences."
+            ,lbWrongTitle : "Wrong Answer List"
+            ,lbNextTest : "Next Test"
+            ,msgTestHistory : "There is no test history."
             ,msgSolveAll : "Please Solve all quizz."
         }*/
         let lang = {
@@ -141,11 +164,111 @@
             ,lbComplete : "완료"
             ,lbResult : "결과"
             ,lbScore : "점"
+            ,lbHistory : "내역보기"
+            ,lbHistoryTitle : "지금까지 {0}단어 {1}문장을 학습하셨습니다."
+            ,lbWrongTitle : "오답 목록"
+            ,lbNextTest : "다음 시험까지"
+            ,msgTestHistory : "시험 본 내역이 없습니다."
             ,msgSolveAll : "모든 문제를 다 풀어주세요."
         }
         let words = new Array();
         let sentences = new Array();
         let quizId = "";
+        const postId = 18;
+        let oneday = {
+            isMode : true,
+            hadTest : false,
+            wrongWord : new Object(),
+            wrongSentence : new Object(),
+            initVoca : function(words){
+                    words.forEach(function(item) {
+                    let tbVoca = document.querySelector('#tbVoca');
+                    let tr = document.createElement('tr');
+                    tr.style.height = '40px';
+                    tr.innerHTML = '<td style="width: 40%; text-align: right; padding-right: 10px">' + item[0] + '</td>' +
+                    '<td><div style="height: 50%;border-bottom: 1px solid gray"></div></td>' +
+                    '<td style="width: 40%;padding-left: 10px"><span class="words" style="color : rgb(0,0,0)">'+(oneday.wrongWord[item[0]]?oneday.wrongWord[item[0]]:item[1])+'</span></td>';
+                    tbVoca.appendChild(tr);
+                });
+            },
+            initSentence : function (sentences){
+                let divSentences = document.querySelector('#divSentences');
+                sentences.forEach(function(item){
+                    item = (oneday.wrongSentence[item]?oneday.wrongSentence[item]:item);
+                    let phs = item.split(' ');
+                    let divBlankSt = document.createElement('div');
+                    let divBtnPhs = document.createElement('div');
+                    divBlankSt.classList.add('w3-justify');
+                    divBlankSt.classList.add('w3-center');
+                    divBlankSt.style.marginTop = '40px';
+                    phs.forEach(function(item){
+                        let span = document.createElement('span');
+                        span.innerHTML = item;
+                        divBlankSt.appendChild(span);
+                        divBlankSt.innerHTML = divBlankSt.innerHTML+'&nbsp;&nbsp;';
+                    });
+                    divSentences.appendChild(divBlankSt);
+                    divBtnPhs.classList.add('eval-valid');
+                    divBtnPhs.style.textAlign = 'center';
+                    divBtnPhs.style.margin = '20px';
+                    divSentences.appendChild(divBtnPhs);
+                    divSentences.appendChild(document.createElement('hr'));
+                });
+            },
+            setWrongData : function(comments){
+                let lines = comments.split("\n");
+                for(let i = 0; i<lines.length; i++){
+                    if(lines[i].startsWith('w:')){
+                        let line = lines[i].substr(2);
+                        if(""===line.trim()) continue;
+                        let wordvals = line.split('@next@');
+                        for(let j = 0; j<wordvals.length; j++){
+                            let spWordvals = wordvals[j].split(',');
+                            spWordvals[0] = spWordvals[0].trim();
+                            spWordvals[1] = spWordvals[1].trim();
+                            oneday.wrongWord[spWordvals[0]] = spWordvals[1];
+                        }
+                    }else if(lines[i].startsWith('s:')){
+                        let line = lines[i].substr(2);
+                        if(""===line.trim()) continue;
+                        let sentenceVal = line.split('@next@');
+                        for(let j = 0; j<sentenceVal.length; j++){
+                            let spSentencevals = sentenceVal[j].split('@comma@');
+                            spSentencevals[0] = spSentencevals[0].trim();
+                            spSentencevals[1] = spSentencevals[1].trim();
+                            oneday.wrongSentence[spSentencevals[0]] = spSentencevals[1];
+                        }
+                    }
+                }
+            },
+            calculateTimer : function(){
+                let timer = document.createElement('h4');
+                let cnt = 0;
+                
+                document.querySelector('#date').parentElement.appendChild(timer);
+                let x = setInterval(function() {
+                    let today = new Date(); 
+                    let tomorrow = new Date();
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    tomorrow.setHours(0);
+                    tomorrow.setMinutes(0);
+                    tomorrow.setSeconds(0);
+                    tomorrow.setMilliseconds(0);
+                    tomorrow = tomorrow.getTime();
+                    let distance = tomorrow - today;
+                    let hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    let minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    let seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                    let miconds = Math.floor((distance % (1000)) / 100);
+                    timer.innerHTML = lang.lbNextTest +" "+  hours + " : "  + minutes + " : " + seconds + "." + miconds;
+
+                    if (distance < 0) {
+                        clearInterval(x);
+                        window.location.reload();
+                    }
+                }, 100);
+            }
+        };
 
         window.onload = function() {
             
@@ -170,8 +293,16 @@
         function afterLoad(){
             words = mixWords(words);
             sentences = mixSentences(sentences);
-            initVoca(words);
-            initSentence(sentences);
+            if(oneday.isMode && oneday.hadTest){
+                oneday.initVoca(words);
+                oneday.initSentence(sentences);
+                oneday.calculateTimer();
+                getScore();
+            }else{
+                initVoca(words);
+                initSentence(sentences);
+            }
+            
         }
         
         function initVoca(words) {
@@ -192,7 +323,6 @@
             });
 
             setDivWordsExamLoc();
-            
         }
 
         function setDivWordsExamLoc(){
@@ -407,7 +537,8 @@
             document.querySelector('#submit').style.display = 'none';
             let evalResult = "t:"+score+","+Math.floor( (wordScore[1]/wordScore[0])*100 )+","+Math.floor( (sentenceScore[1]/sentenceScore[0])*100 )
                             +"\nw:"+wordScore[2]+"\ns:"+sentenceScore[2];
-            sendResult(evalResult);
+            
+            if(!oneday.isMode || !oneday.hadTest) sendResult(evalResult);
         }
         
         function wordsEvaluate(){
@@ -436,7 +567,7 @@
                     rightAns.style.marginLeft = '10px';
                     rightAns.innerHTML = words[index][1];
                     tds[2].appendChild(rightAns);
-                    wrongAnswer  = wrongAnswer + "@next@"+words[index][0]+","+words[index][1];
+                    wrongAnswer  = wrongAnswer + "@next@"+words[index][0]+","+tds[2].querySelector('span').innerHTML;
                 }
                 tds[2].querySelector('span').classList.remove('w3-button');
                 tds[2].querySelector('span').classList.remove('word-btn');
@@ -484,7 +615,7 @@
                     rightAns.style.marginLeft = '10px';
                     rightAns.innerHTML = sentences[idxDiv/2];
                     item.appendChild(rightAns);
-                    wrongAnswer  = wrongAnswer + "@next@"+sentences[idxDiv/2];
+                    wrongAnswer  = wrongAnswer + "@next@"+sentences[idxDiv/2]+"@comma@"+spanText.substring(1);
                 }
                 let sentenceScore = document.querySelector('#sentenceScore');
                 let score = Math.floor( (rightCnt/totCnt)*100 );
@@ -510,18 +641,30 @@
                     data: {
                         access_token: "c80122b26dd7c701a5e4795e8d7ce444_02e5990259cbd49a6a406602a4903714",
                         blogName: "5789",
-                        postId: "18",
+                        postId: postId,
                         output: 'json'
                     }
                 })
                 .done(function(msg) {
                     let comments = msg.tistory.item.comments;
+                    history.data = comments;
                     let lines;
                     for(let i = comments.length-1; i>=0; i--){
                         if(comments[i].parentId===''){
                             lines = comments[i].comment.split('\n');
                             quizId = comments[i].id;
                             break;
+                        }else if( comments[i].parentId !=='' && oneday.isMode ){
+                            let comYear = parseInt(comments[i].date.substring(0,4));
+                            let comMonth = parseInt(comments[i].date.substring(5,7));
+                            let comDay = parseInt(comments[i].date.substring(8,10));
+                            let date = new Date();
+                            if(comYear == date.getFullYear()
+                            && comMonth == (date.getMonth()+1)
+                            && comDay == date.getDate()){
+                                oneday.hadTest = true;
+                                oneday.setWrongData(comments[i].comment);
+                            }
                         }
                     }
                     for(let i = 0; i<lines.length; i++){
@@ -552,7 +695,7 @@
                     data: {
                         access_token: "c80122b26dd7c701a5e4795e8d7ce444_02e5990259cbd49a6a406602a4903714",
                         blogName: "5789",
-                        postId: "18",
+                        postId: postId,
                         parentId: quizId,
                         content: evalResult,
                         output: 'json'
@@ -592,7 +735,7 @@
                     data: {
                         access_token: "c80122b26dd7c701a5e4795e8d7ce444_02e5990259cbd49a6a406602a4903714",
                         blogName: "5789",
-                        postId: "18",
+                        postId: postId,
                         content: wResult+"\n"+sResult,
                         output: 'json'
                     }
@@ -614,7 +757,7 @@
                    let target = event.currentTarget; 
                    let p = document.createElement('p');
                    p.classList.add('qf-word');
-                   p.innerHTML = '<input class="w3-input w3-padding-16 w3-border" type="text" style="width: 45%; display: inline"  placeholder="영어">\n<input class="w3-input w3-padding-16 w3-border" type="text" style="width: 45%; display: inline" placeholder="한국어">';
+                   p.innerHTML = '<input class="w3-input w3-padding-16 w3-border" type="text" style="width: 45%; display: inline"  placeholder="'+lang.lbSourceLang+'">\n<input class="w3-input w3-padding-16 w3-border" type="text" style="width: 45%; display: inline" placeholder="'+lang.lbTargetLang+'">';
                    target.parentElement.parentElement.insertBefore(p,target.parentElement);
                    let oldInputs = target.parentElement.querySelectorAll('input');
                    let newInputs = p.querySelectorAll('input');
@@ -632,7 +775,7 @@
                    let target = event.currentTarget; 
                    let p = document.createElement('p');
                    p.classList.add('qf-sentence');
-                   p.innerHTML = '<input class="w3-input w3-padding-16 w3-border" type="text" placeholder="한국어 문장" onkeypress="newQuiz.onKeyPressSentence()">';
+                   p.innerHTML = '<input class="w3-input w3-padding-16 w3-border" type="text" placeholder="'+lang.lbTargetLang+'" onkeypress="newQuiz.onKeyPressSentence()">';
                    target.parentElement.parentElement.insertBefore(p,target.parentElement);
                    let oldInput = target.parentElement.querySelector('input');
                    let newInput = p.querySelector('input');
@@ -644,7 +787,143 @@
                }
             }
         }
-        
+
+        let history = {
+            data : new Object(),
+            init : function(){
+                document.getElementById('retrieveHistoryForm').style.display='block';
+                history.setTitle();
+                history.showWrongAnswerList();
+                history.showGraph();
+            },
+            graphLabels : [],
+            graphData : [],
+            showWrongAnswerList : function(){
+                let wrongAnswer = document.querySelector('#wrongAnswer');
+                let wrongWord = new Object();
+                let wrongSentence = new Object();
+                let idxGraphData = 0;
+                let idxGraphLabels = 0;
+                for(let i = history.data.length-1; i >= 0; i--){
+                    if(history.data[i].parentId === ""){
+                        break;
+                    } 
+                    if(history.data[i].parentId !== quizId) continue;
+                    let lines = history.data[i].comment.split('\n');
+                    for(let j = 0; j<lines.length; j++){
+                        if(lines[j].startsWith('w:')){
+                            let line = lines[j].substr(2);
+                            if(""===line.trim()) continue;
+                            let wordvals = line.split('@next@');
+                            for(let k = 0; k<wordvals.length; k++){
+                                let spWordvals = wordvals[k].split(',');
+                                spWordvals[0] = spWordvals[0].trim();
+                                for(let wi = 0; wi < words.length; wi++){
+                                    if(spWordvals[0] === words[wi][0])
+                                    spWordvals[1] = words[wi][1];
+                                }
+                                
+                                wrongWord[spWordvals[0]] = spWordvals[1];
+                            }
+                        }else if(lines[j].startsWith('s:')){
+                            let line = lines[j].substr(2);
+                            if(""===line.trim()) continue;
+                            let sentences = line.split('@next@');
+                            for(let k = 0; k<sentences.length; k++){
+                                let spSentences = sentences[k].split("@comma@");
+                                wrongSentence[spSentences[0]] = "";
+                            }
+                        }else if(lines[j].startsWith('t:')){
+                            let line = lines[j].substr(2);
+                            if(""===line.trim()) continue;
+                            let scores = line.split(",");
+                            let regDate = history.data[i].date.substring(5,11);
+                            history.graphData[idxGraphData++] = scores[0];
+                            history.graphLabels[idxGraphLabels++] = regDate;
+                        }
+                    }
+                }
+
+                if( history.graphData.length === 0 ){
+                    let p = document.createElement('p');
+                    p.classList.add('w3-center');
+                    p.innerText = lang.msgTestHistory;
+                    wrongAnswer.appendChild(p);
+                }
+
+                history.graphData = history.graphData.reverse();
+                history.graphLabels = history.graphLabels.reverse();
+
+                for(let key in wrongWord){
+                    let p = document.createElement('p');
+                    p.innerText = key +" - " + wrongWord[key];
+                    wrongAnswer.appendChild(p);
+                }
+                for(let key in wrongSentence){
+                    let p = document.createElement('p');
+                    p.innerText = key;
+                    wrongAnswer.appendChild(p);
+                }
+            },
+            setTitle : function(){
+                let wordCnt = 0;
+                let sentenceCnt = 0;
+                for(let i = 0; i<history.data.length; i++){
+                    if(history.data[i].parentId !== "") continue;
+                    let lines = history.data[i].comment.split('\n');
+                    for(let j = 0; j<lines.length; j++){
+                        if(lines[j].startsWith('w:')){
+                            let line = lines[j].substr(2);
+                            if(""===line.trim()) continue;
+                            let wordvals = line.split('@next@');
+                            wordCnt+=wordvals.length;
+                        }else if(lines[j].startsWith('s:')){
+                            let line = lines[j].substr(2);
+                            if(""===line.trim()) continue;
+                            let sentences = line.split('@next@');
+                            sentenceCnt+=sentences.length;
+                        }
+                    }
+                }
+                document.querySelector('#lbHistoryTitle').innerText = lang.lbHistoryTitle.format(wordCnt,sentenceCnt);
+            },
+            showGraph : function(){
+                var ctx = document.getElementById("myChart");
+                let ranR = Math.floor(Math.random()*1000)%150+55;
+                let ranG = Math.floor(Math.random()*1000)%150+55;
+                let ranB = Math.floor(Math.random()*1000)%150+55;
+                console.log(ranR, ranG, ranB);
+                var myChart = new Chart(ctx
+                    ,{
+                        type: 'line',
+                        data: {
+                            labels: history.graphLabels,
+                            datasets: [{
+                                label: 'Total Score',
+                                data: history.graphData,
+                                backgroundColor: ['rgba('+ranR+', '+ranG+', '+ranB+', 0.2)'],
+                                borderColor: ['rgba('+ranR+', '+ranG+', '+ranB+', 1)'],
+                                fill :false,
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                yAxes: [{
+                                    ticks: {
+                                        beginAtZero:false
+                                            }
+                                        }]
+                                    }
+                                }
+                    });
+            }
+        }
+
+        String.prototype.format = function() { a = this;
+            for (k in arguments) { a = a.replace("{" + k + "}", arguments[k]) }
+            return a;
+        }
     </script>
 
 </body>
