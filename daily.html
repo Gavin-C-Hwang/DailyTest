@@ -790,11 +790,16 @@
 
         let history = {
             data : new Object(),
+            wasOpened : false,
             init : function(){
                 document.getElementById('retrieveHistoryForm').style.display='block';
-                history.setTitle();
-                history.showWrongAnswerList();
-                history.showGraph();
+                if(!history.wasOpened){
+                    history.setTitle();
+                    history.showWrongAnswerList();
+                    history.showGraph();
+                    history.wasOpened = true;
+                }
+                
             },
             graphLabels : [],
             graphData : [],
