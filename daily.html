@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Oswald">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open Sans">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
 <style>
     h1,
     h2,
@@ -16,9 +17,14 @@
     h6 {
         font-family: "Oswald"
     }
+    
+    hr{
+        border-top: 1px solid #aaa;    
+    }
 
     body {
-        font-family: "Open Sans"
+        font-family: "Open Sans";
+        background-color: #dddddd;
     }
 
     .word-btn {
@@ -42,12 +48,12 @@
     
 </style>
 
-<body class="w3-light-grey">
+<body>
 
     <div class="w3-content" style="max-width:1600px">
 
         <!-- Header -->
-        <header class="w3-container w3-center w3-white">
+        <header class="w3-container w3-center">
             <h1 class="w3-xxxlarge"><b><span name="lbDailyTest">Daily Test</span></b></h1>
             <h3 id="totScore"></h3>
             <h5 class="w3-opacity" id="date">JAN 8, 2019</h5>
@@ -57,7 +63,7 @@
         <div class="w3-row w3-border">
 
             <!-- Blog entry -->
-            <div class="w3-container w3-white w3-margin">
+            <div class="w3-container w3-margin">
                 <div class="w3-center">
                     <h3><span name="lbWord">Word</span><span id="wordScore" style="margin-left: 10px;"></span></h3>
                 </div>
@@ -71,7 +77,7 @@
             </div>
             <hr>
 
-            <div class="w3-container w3-white w3-margin">
+            <div class="w3-container w3-margin">
                 <div class="w3-center">
                     <h3><span name="lbSentence">Sentence</span><span id="sentenceScore" style="margin-left: 10px;"></span></h3>
                 </div>
@@ -133,11 +139,12 @@
     <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.min.js"></script>
     <script>
-        /*let lang = {
-            lbDailyTest : "Daily Test"
+        let lang = {
+            cd : 'en-US'
+            ,lbDailyTest : "Daily Test"
             ,lbWord : "Word"
-            ,lbSourceLang : "English"
-            ,lbTargetLang : "Korean"
+            ,lbSourceLang : "Korean"
+            ,lbTargetLang : "English"
             ,lbSentence : "Sentence"
             ,lbSubmit : "Submit"
             ,lbRegQuiz : "New Quiz"
@@ -145,15 +152,15 @@
             ,lbComplete : "Complete"
             ,lbResult : "Result"
             ,lbScore : " score"
-            ,lbHistory : "History"
             ,lbHistoryTitle : "You've studied {0} words and {1} sentences."
             ,lbWrongTitle : "Wrong Answer List"
             ,lbNextTest : "Next Test"
             ,msgTestHistory : "There is no test history."
             ,msgSolveAll : "Please Solve all quizz."
-        }*/
-        let lang = {
-            lbDailyTest : "매일 쪽지시험"
+        }
+        /*let lang = {
+            cd : 'ko-KR'
+            ,lbDailyTest : "매일 쪽지시험"
             ,lbWord : "단어"
             ,lbSourceLang : "영어"
             ,lbTargetLang : "한국어"
@@ -164,19 +171,38 @@
             ,lbComplete : "완료"
             ,lbResult : "결과"
             ,lbScore : "점"
-            ,lbHistory : "내역보기"
             ,lbHistoryTitle : "지금까지 {0}단어 {1}문장을 학습하셨습니다."
             ,lbWrongTitle : "오답 목록"
             ,lbNextTest : "다음 시험까지"
             ,msgTestHistory : "시험 본 내역이 없습니다."
             ,msgSolveAll : "모든 문제를 다 풀어주세요."
-        }
+        }*/
+        /*let lang = {
+            cd : 'ja-JP'
+            ,lbDailyTest : "毎日のテスト"
+            ,lbWord : "ワード"
+            ,lbSourceLang : "英語"
+            ,lbTargetLang : "日本語"
+            ,lbSentence : "文章"
+            ,lbSubmit : "提出する"
+            ,lbRegQuiz : "新しいクイズ"
+            ,lbHistory : "歴史"
+            ,lbComplete : "コンプリート"
+            ,lbResult : "結果"
+            ,lbScore : " スコア"
+            ,lbHistoryTitle : "あなたは{0}単語と{1}文を勉強しました。"
+            ,lbWrongTitle : "間違った回答リスト"
+            ,lbNextTest : "次のテスト"
+            ,msgTestHistory : "テスト履歴はありません。"
+            ,msgSolveAll : "すべてのクイズを解いてください。"
+        }*/
         let words = new Array();
         let sentences = new Array();
         let quizId = "";
-        const postId = 18;
+        const postId = 21;
+        let useVoice = true;
         let oneday = {
-            isMode : true,
+            isMode : false,
             hadTest : false,
             wrongWord : new Object(),
             wrongSentence : new Object(),
@@ -330,7 +356,6 @@
             if(window.scrollY > scrollLoc){
                 let divWordsExam = document.querySelector('#divWordsExam');
                 divWordsExam.style.position = 'static';
-                divWordsExam.style.backgroundColor = '#ffffff';
                 divWordsExam.style.removeProperty('left');
                 divWordsExam.style.removeProperty('bottom');
                 divWordsExam.style.removeProperty('margin');
@@ -341,7 +366,6 @@
                 divWordsExam.style.padding = (divWordsExam.innerHTML.trim()==''?'0px':'16px');
                 divWordsExam.style.bottom = '0px';
                 divWordsExam.style.left = '0px';
-                divWordsExam.style.backgroundColor = '#ffffff';
             }
         }
         
@@ -360,6 +384,7 @@
                     divBlankSt.appendChild(span);
                     divBlankSt.innerHTML = divBlankSt.innerHTML+'&nbsp;&nbsp;';
                 });
+                
                 divSentences.appendChild(divBlankSt);
                 divBtnPhs.classList.add('eval-valid');
                 divBtnPhs.style.textAlign = 'center';
@@ -368,7 +393,21 @@
                     addSentenceExam(item,divBtnPhs);
                 });
                 divSentences.appendChild(divBtnPhs);
+                if(useVoice && ('webkitSpeechRecognition' in window) ){
+                    let btnVoice = document.createElement('div');
+                    btnVoice.classList.add('w3-button');
+                    btnVoice.classList.add('w3-black');
+                    btnVoice.classList.add('voice');
+                    btnVoice.style.width = '100%';
+                    btnVoice.style.whiteSpace = 'normal';
+                    btnVoice.innerHTML = '<i class="fas fa-microphone " style="font-size: 20pt;vertical-align: middle; margin-right: 10px;"></i>';
+                    btnVoice.addEventListener('click', function(){
+                        voice(this,phs);
+                    },false);
+                    divSentences.appendChild(btnVoice);
+                }
                 divSentences.appendChild(document.createElement('hr'));
+                
             });
         }
         
@@ -451,21 +490,28 @@
 
         }
         
-        function onClickSentence(){
+        function onClickSentence(ev,order,obj){
+            let clickObj = null;
+            if(order === undefined){
+                clickObj = this;
+                order = 0;
+            }else{
+                clickObj = obj;
+            }
             const pattern = /^_+$/;
-            let divBlankSentence = this.parentElement.previousSibling;
+            let divBlankSentence = clickObj.parentElement.previousSibling;
             let spans = divBlankSentence.querySelectorAll('span');
             
-            for(let span of spans){
-                if( pattern.test(span.innerHTML) ){
-                    let oldItem = this;
-                    span.setAttribute('oritext',span.innerHTML);
-                    span.innerHTML = oldItem.innerHTML;
-                    span.classList.add('w3-button');
-                    span.classList.add('word-btn');
-                    span.classList.add('w3-animate-zoom');
-                    span.style.margin = '5px';
-                    span.addEventListener('click',onClickSentenceCancel);
+            for(let i = order; i<spans.length; i++){
+                if( pattern.test(spans[i].innerHTML) ){
+                    let oldItem = clickObj;
+                    spans[i].setAttribute('oritext',spans[i].innerHTML);
+                    spans[i].innerHTML = oldItem.innerHTML;
+                    spans[i].classList.add('w3-button');
+                    spans[i].classList.add('word-btn');
+                    spans[i].classList.add('w3-animate-zoom');
+                    spans[i].style.margin = '5px';
+                    spans[i].addEventListener('click',onClickSentenceCancel);
                     
                     oldItem.classList.add('w3-animate-zoomout');
                     setTimeout(function(){
@@ -473,7 +519,7 @@
                         oldItem.parentElement.removeChild(oldItem);
                     },150);
                     
-                    setTimeout(function(){span.classList.remove('w3-animate-zoom')},150);
+                    setTimeout(function(){spans[i].classList.remove('w3-animate-zoom')},150);
                     break;
                 }
             }
@@ -581,6 +627,12 @@
         }
         
         function sentencesEvaluate(){
+            if(useVoice && ('webkitSpeechRecognition' in window)){
+                let voices = document.querySelectorAll('.voice');
+                for(let i = 0; i<voices.length; i++)
+                    voices[i].remove();
+            }
+
             let wrongAnswer = "";
             let divSentences = document.querySelector('#divSentences');
             let divs = divSentences.querySelectorAll('div');
@@ -704,6 +756,78 @@
                 .done(function(msg) {
                     console.log(msg);
                 });
+        }
+
+        function voice(btn, sentence){
+            btn.style.color = 'red';
+            let oldHtml = btn.querySelector('i').outerHTML;
+            let voiceResult = new Array();
+            let btnPhsOnBlank = btn.previousSibling.previousSibling.querySelectorAll('.word-btn');
+            for(let j = 0; j<btnPhsOnBlank.length; j++){
+                btnPhsOnBlank[j].click();
+                btnPhsOnBlank[j].classList.remove('word-btn');
+            }
+
+            if(!('webkitSpeechRecognition' in window)) jQuery('.fa-microphone').css('display','none');
+            else {
+                var mic = new webkitSpeechRecognition();
+                mic.continuous = true;
+                mic.interimResults = true;
+                mic.lang = lang.cd;
+            }
+            mic.onresult = function(e) {
+                var b = '', c = false;
+                for(var i = e.resultIndex; i < e.results.length; ++i) {
+                    b += e.results[i][0].transcript;
+                    c = e.results[i].isFinal;
+                }
+                btn.innerHTML = oldHtml + b;
+                voiceResult = b.split(' ');
+               
+            };
+            mic.onend = function() {
+                btn.style.setProperty("color", "white", "important");
+                let oriBtnPhsCnt = btn.previousSibling.querySelectorAll('.word-btn').length;
+                for(let i = 0; i<voiceResult.length; i++){
+                    let btnPhs = btn.previousSibling.querySelectorAll('.word-btn');
+                    for(let j = 0; j<btnPhs.length; j++){
+                        if(i+1>oriBtnPhsCnt) break;
+                        if(guessSameWord(voiceResult[i],btnPhs[j].innerHTML)){
+                            btnPhs[j].removeEventListener('click', onClickSentence);
+                            btnPhs[j].addEventListener('click', function(ev){
+                                onClickSentence(ev,i,btnPhs[j]);
+                            });
+                            btnPhs[j].click();
+                            btnPhs[j].classList.remove('word-btn');
+                            break;
+                        }
+                    }
+                }
+            };
+            mic.start();
+            btn.style.setProperty("color", "red", "important");
+        }
+
+
+        function guessSameWord(source, target){
+            let replacedSource = source.toLowerCase()
+            .replace(".","")
+            .replace(",","")
+            .replace("?","")
+            .replace("!","")
+            .replace("'","");
+            let replacedTarget = target.toLowerCase()
+            .replace(".","")
+            .replace(",","")
+            .replace("?","")
+            .replace("!","")
+            .replace("'","");
+
+            if(replacedSource === replacedTarget){
+                return true;
+            }else{
+                return false;
+            }
         }
         
         let newQuiz = {
@@ -897,7 +1021,6 @@
                 let ranR = Math.floor(Math.random()*1000)%150+55;
                 let ranG = Math.floor(Math.random()*1000)%150+55;
                 let ranB = Math.floor(Math.random()*1000)%150+55;
-                console.log(ranR, ranG, ranB);
                 var myChart = new Chart(ctx
                     ,{
                         type: 'line',
