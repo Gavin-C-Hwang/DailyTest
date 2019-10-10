@@ -233,6 +233,7 @@
                         divBlankSt.appendChild(span);
                         divBlankSt.innerHTML = divBlankSt.innerHTML+'&nbsp;&nbsp;';
                     });
+
                     divSentences.appendChild(divBlankSt);
                     divBtnPhs.classList.add('eval-valid');
                     divBtnPhs.style.textAlign = 'center';
@@ -372,7 +373,23 @@
         function initSentence(sentences){
             let divSentences = document.querySelector('#divSentences');
             sentences.forEach(function(item){
-                let phs = item.split(' ');
+                
+                let phs = [];
+                let idxPhs = 0;
+                let items = item.split(' ');
+                let wordsCnt = parseInt(items.length/4); //words count for each button.
+                if(wordsCnt==0) wordsCnt = 1;
+                
+                for(let i = 0; i<items.length; i+=wordsCnt){
+                    phs[idxPhs] = '';
+                    for(let j = 0; j<wordsCnt; j++){
+                        if(i<items.length-j){
+                          phs[idxPhs] +=  ' '+items[i+j];
+                        }
+                    }
+                    idxPhs++;
+                }
+                
                 let divBlankSt = document.createElement('div');
                 let divBtnPhs = document.createElement('div');
                 divBlankSt.classList.add('w3-justify');
@@ -383,7 +400,7 @@
                     span.innerHTML = getBlank(item);
                     divBlankSt.appendChild(span);
                     divBlankSt.innerHTML = divBlankSt.innerHTML+'&nbsp;&nbsp;';
-                });
+                }); 
                 
                 divSentences.appendChild(divBlankSt);
                 divBtnPhs.classList.add('eval-valid');
