@@ -377,12 +377,12 @@
                 let phs = [];
                 let idxPhs = 0;
                 let items = item.split(' ');
-                let wordsCnt = parseInt(items.length/4); //words count for each button.
+                let wordsCnt = Math.round(items.length/4); //words count for each button.
                 if(wordsCnt==0) wordsCnt = 1;
                 
                 for(let i = 0; i<items.length; i+=wordsCnt){
-                    phs[idxPhs] = '';
-                    for(let j = 0; j<wordsCnt; j++){
+                    phs[idxPhs] = items[i];
+                    for(let j = 1; j<wordsCnt; j++){
                         if(i<items.length-j){
                           phs[idxPhs] +=  ' '+items[i+j];
                         }
